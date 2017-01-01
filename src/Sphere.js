@@ -32,12 +32,22 @@ define([],
             return true;
         };
 
+        Sphere.prototype.getCenter = function() {
+            return this.center;
+        };
+
         Sphere.prototype.getRadius = function() {
             return this.radius;
         };
 
         Sphere.prototype.getMaterial = function() {
             return this.material;
+        };
+
+        Sphere.prototype.getNormal = function(point) {
+            var normal = point.clone().subtract(this.getCenter());
+            normal.normalize();
+            return normal;
         };
 
         return Sphere;

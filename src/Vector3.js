@@ -43,7 +43,7 @@ define([],
             return this.x * otherVector.x + this.y * otherVector.y + this.z * otherVector.z;
         };
 
-        Vector3.prototype.crossProduct = function(otherVector) {
+        Vector3.prototype.product = function(otherVector) {
             this.x *= otherVector.x;
             this.y *= otherVector.y;
             this.z *= otherVector.z;
@@ -68,6 +68,13 @@ define([],
             this.x -= otherVector.x;
             this.y -= otherVector.y;
             this.z -= otherVector.z;
+            return this;
+        };
+
+        Vector3.prototype.revert = function() {
+            this.x = -this.x;
+            this.y = -this.y;
+            this.z = -this.z;
             return this;
         };
 

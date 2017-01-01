@@ -5,10 +5,11 @@ define([],
         /**
          * @class Material
          */
-        function Material(surfaceColor, transparency, reflection) {
+        function Material(surfaceColor, reflection, transparency, emissionColor) {
             this.surfaceColor = surfaceColor;
             this.transparency = transparency;
             this.reflection = reflection;
+            this.emissionColor = emissionColor;
         }
 
         return Material;
