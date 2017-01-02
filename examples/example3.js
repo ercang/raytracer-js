@@ -71,7 +71,7 @@ requirejs(["src/RayTracer",
 
               // var create render planner
               var bufferPieces = [];
-              var workerCount = 4;
+              var workerCount = 8;
               var renderPlanner = new RenderPlanner(workerCount, scene, backgroundColor, canvasWidth, canvasHeight);
               renderPlanner.onUpdateReceived = function(sectionStart, sectionHeight, buf8)
               {
