@@ -1,5 +1,7 @@
-define([],
-    function () {
+define(["src/Material",
+        "src/Vector3"],
+    function (Material,
+              Vector3) {
         'use strict';
 
         /**
@@ -48,6 +50,38 @@ define([],
             var normal = point.clone().subtract(this.getCenter());
             normal.normalize();
             return normal;
+        };
+
+        Sphere.prototype.serialize = function() {
+            var sc = this.material.surfaceColor;
+            var ec = this.material.emissionColor;
+            var transparency = this.material.transparency;
+            var reflection = this.material.reflection;
+
+            return {
+                "center": [this.center.x, this.center.y, this.center.z],
+                "radius": this.radius,
+                "material": {
+                    "surfaceColor": [sc.x, sc.y, sc.z],
+                    "emissionColor": [ec.x, ec.y, ec.z],
+                    "transparency": transparency,
+                    "reflection": reflection
+                }
+            };
+        };
+
+        Sphere.deserialize = function(data) {
+            var center = data.center;
+            var radius = data.radius;
+            var surfaceColor = data.material.surfaceColor;
+            var emissionColor = data.material.emissionColor;
+            var transparency = data.material.transparency;
+            var reflection = data.material.reflection;
+
+            return new Sphere(new Vector3(center[0], center[1], center[2]), radius,
+                       new Material(new Vector3(surfaceColor[0], surfaceColor[1], surfaceColor[2]), reflection, transparency,
+                                    new Vector3(emissionColor[0], emissionColor[1], emissionColor[2])));
+
         };
 
         return Sphere;

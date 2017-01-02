@@ -43,7 +43,11 @@ requirejs(["src/RayTracer",
         // add light
         scene.add(
             new Sphere(new Vector3(0, 20, -30), 3,
-                new Material(new Vector3(), 0, 0, new Vector3(3, 3, 3)))
+                new Material(new Vector3(), 0, 0, new Vector3(1.2, 1.2, 1.2)))
+        );
+        scene.add(
+            new Sphere(new Vector3(0, 10, 10), 3,
+                       new Material(new Vector3(), 0, 0, new Vector3(1, 1, 1)))
         );
 
         var backgroundColor = new Vector3(2.0, 2.0, 2.0);
@@ -51,27 +55,29 @@ requirejs(["src/RayTracer",
         // create ray tracer
         var rayTracer = new RayTracer(backgroundColor, scene);
 
-        // save start time
-        var startTime = new Date();
-
         // get canvas
         var canvas = document.getElementById("resultCanvas");
         var ctx = canvas.getContext('2d');
         var canvasWidth  = canvas.width;
         var canvasHeight = canvas.height;
 
-        // render
-        var buffer = rayTracer.render(canvasWidth, canvasHeight);
+        document.getElementById("startButtonId").onclick = function() {
+            // save start time
+            var startTime = new Date();
 
-        // copy ray tracer buffer to canvas
-        var buf8  = new Uint8ClampedArray(buffer);
+            // render
+            var buffer = rayTracer.render(canvasWidth, canvasHeight);
 
-        var imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-        imageData.data.set(buf8);
-        ctx.putImageData(imageData, 0, 0);
+            // copy ray tracer buffer to canvas
+            var buf8  = new Uint8ClampedArray(buffer);
 
-        // display total duration
-        var totalDuration = (new Date() - startTime)/1000;
-        document.getElementById("resultDiv").innerHTML = "Render completed! " + totalDuration + " seconds!";
+            var imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+            imageData.data.set(buf8);
+            ctx.putImageData(imageData, 0, 0);
+
+            // display total duration
+            var totalDuration = (new Date() - startTime)/1000;
+            document.getElementById("resultDiv").innerHTML = "Render completed! " + totalDuration + " seconds!";
+        };
     }
 );

@@ -4,7 +4,7 @@ define(["src/Vector3",
               Sphere) {
         'use strict';
 
-        var MAX_RAY_DEPTH = 5;
+        var MAX_RAY_DEPTH = 1;
         var INFINITY = 1e8;
 
         /**
@@ -15,13 +15,9 @@ define(["src/Vector3",
             this.scene = scene;
         }
 
-        RayTracer.prototype.mix = function(a, b, mix) {
-            return b * mix + a * (1 - mix);
-        };
-
         RayTracer.prototype.trace = function(rayOrigin, rayDir, depth) {
             var tnear = INFINITY;
-            var element = undefined;
+            var element = null;
 
             var elements = this.scene.getElements();
             var elementsLen = elements.length;
@@ -44,7 +40,7 @@ define(["src/Vector3",
                 }
             }
 
-            if(element == undefined) {
+            if(element == null) {
                 // no hit, return background color
                 return this.backgroundColor;
             }
@@ -62,59 +58,35 @@ define(["src/Vector3",
             }
 
             var mat = element.getMaterial();
-            if ((mat.transparency > 0 || mat.reflection > 0) && depth < MAX_RAY_DEPTH)
+            for(var i=0; i<elementsLen; i++)
             {
-                var facingRatio = -rayDir.dotProduct(intersectionNormal);
-                var fresnelEffect = this.mix(Math.pow(1 - facingRatio, 3), 1, 0.1);
-                var reflDir = rayDir.clone().subtract(intersectionNormal.clone().multiply(2* rayDir.dotProduct(intersectionNormal)));
-                reflDir.normalize();
-                var reflection = this.trace(intersectionPoint.clone().add(intersectionNormal.clone().multiply(bias)), reflDir, depth + 1);
-                var refraction = new Vector3(0,0,0);
-                if(mat.transparency > 0)
+                var el = elements[i];
+                var lightMat = el.getMaterial();
+                if(lightMat.emissionColor.x > 0 || lightMat.emissionColor.y > 0 ||
+                    lightMat.emissionColor.z > 0)
                 {
-                    var ior = 1.1;
-                    var eta = inside ? ior : 1 / ior;
-                    var cosi = -intersectionNormal.dotProduct(rayDir);
-                    var k = 1 - eta * eta * (1 - cosi * cosi);
-                    var refrDir = rayDir.clone().multiply(eta).add(intersectionNormal.clone().multiply((eta *  cosi - Math.sqrt(k))));
-                    refrDir.normalize();
-                    refraction = this.trace(intersectionPoint.clone().subtract(intersectionNormal.clone().multiply(bias)), refrDir, depth + 1);
-                }
+                    // light source
+                    var transmission = new Vector3(1, 1, 1);
+                    var lightDirection = el.getCenter().clone().subtract(intersectionPoint);
+                    lightDirection.normalize();
+                    var lightHitInfo = {t0:INFINITY, t1:INFINITY};
 
-                surfaceColor = (reflection.multiply(fresnelEffect).add(refraction.multiply((1 - fresnelEffect) * mat.transparency))).product(mat.surfaceColor);
-            }
-            else
-            {
-                for(var i=0; i<elementsLen; i++)
-                {
-                    var el = elements[i];
-                    var lightMat = el.getMaterial();
-                    if(lightMat.emissionColor.x > 0 || lightMat.emissionColor.y > 0 ||
-                        lightMat.emissionColor.z > 0)
+                    for(var j=0; j<elementsLen; j++)
                     {
-                        // light source
-                        var transmission = new Vector3(1, 1, 1);
-                        var lightDirection = el.getCenter().clone().subtract(intersectionPoint);
-                        lightDirection.normalize();
-                        var lightHitInfo = {t0:INFINITY, t1:INFINITY};
-
-                        for(var j=0; j<elementsLen; j++)
-                        {
-                            if(i != j) {
-                                if(elements[j].intersect(intersectionPoint.clone().add(intersectionNormal.clone().multiply(bias)), lightDirection, lightHitInfo)) {
-                                    transmission.x = 0;
-                                    transmission.y = 0;
-                                    transmission.z = 0;
-                                    break;
-                                }
+                        if(i != j) {
+                            if(elements[j].intersect(intersectionPoint.clone().add(intersectionNormal.clone().multiply(bias)), lightDirection, lightHitInfo)) {
+                                transmission.x = 0;
+                                transmission.y = 0;
+                                transmission.z = 0;
+                                break;
                             }
-
                         }
 
-                        var lightRatio = Math.max(0, intersectionNormal.dotProduct(lightDirection));
-
-                        surfaceColor.add(mat.surfaceColor.clone().product(transmission.multiply(lightRatio)).product(lightMat.emissionColor));
                     }
+
+                    var lightRatio = Math.max(0, intersectionNormal.dotProduct(lightDirection));
+
+                    surfaceColor.add(mat.surfaceColor.clone().product(transmission).product(lightMat.emissionColor.clone().multiply(lightRatio)));
                 }
             }
 
@@ -122,10 +94,18 @@ define(["src/Vector3",
             return surfaceColor;
         };
 
-        RayTracer.prototype.render = function(width, height) {
+        RayTracer.prototype.render = function(width, height, startY, scanHeight) {
+            if(startY == undefined) {
+                startY = 0;
+            }
+
+            if(scanHeight == undefined) {
+                scanHeight = height;
+            }
+
             // create buffer, 4 bytes for 1 pixel, r, g, b, a order
             var colorDepth = 4;
-            var buffer = new ArrayBuffer(width*height*colorDepth);
+            var buffer = new ArrayBuffer(width*scanHeight*colorDepth);
             var bufferView = new Uint32Array(buffer);
             var invWidth = 1/width;
             var invHeight = 1/height;
@@ -133,10 +113,11 @@ define(["src/Vector3",
             var aspectRatio = width/height;
             var angle = Math.tan(Math.PI * 0.5 * fov / 180);
             var rayOrigin = new Vector3(0, 0, 0);
+            var pixelIndex = 0;
 
-            // Trace rays
-            for (var y = 0; y<height; ++y) {
-                for (var x = 0; x<width; ++x) {
+            // trace rays
+            for (var y=startY; y<startY+scanHeight; ++y) {
+                for (var x=0; x<width; ++x, ++pixelIndex) {
                     var xx = (2 * ((x + 0.5) * invWidth) - 1) * angle * aspectRatio;
                     var yy = (1 - 2 * ((y + 0.5) * invHeight)) * angle;
                     var rayDir = new Vector3(xx, yy, -1);
@@ -154,7 +135,7 @@ define(["src/Vector3",
                     var g = Math.round(pixelColor.y * 255);
                     var b = Math.round(pixelColor.z * 255);
 
-                    bufferView[y * width + x] =
+                    bufferView[pixelIndex] =
                         (255   << 24) |	// alpha
                         (b << 16) |	// blue
                         (g <<  8) |	// green

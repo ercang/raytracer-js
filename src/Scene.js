@@ -17,5 +17,9 @@ define([],
             return this.elements;
         };
 
+        Scene.prototype.clear = function() {
+            this.elements = [];
+        };
+
         return Scene;
     });
