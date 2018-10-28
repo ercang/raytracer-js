@@ -1,6 +1,12 @@
 # RayTracer.js
 A simple ray tracer written in javascript with WebWorker support.
 
+Note: WebWorkers not supporting module scripts at the time of es6 update. Please check the issues below.
+
+Firefox: https://bugzilla.mozilla.org/show_bug.cgi?id=1247687
+
+Chromium: https://bugs.chromium.org/p/chromium/issues/detail?id=680046
+
 This is a hobby project which was based on the following tutorial.
 
 https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-ray-tracing/implementing-the-raytracing-algorithm
@@ -9,8 +15,6 @@ https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-ray-tra
 "./src" - Library source code
 
 "./examples" - Example usages of this library
-
-"./third_party" - Third party code
 
 # Examples
 

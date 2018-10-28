@@ -1,25 +1,20 @@
-define([],
-    function () {
-        'use strict';
+/**
+ * @class Scene
+ */
+export default class Scene {
+    constructor() {
+        this.elements = [];
+    }
 
-        /**
-         * @class Scene
-         */
-        function Scene() {
-            this.elements = [];
-        }
+    add(element) {
+        this.elements.push(element);
+    }
 
-        Scene.prototype.add = function(element) {
-            this.elements.push(element);
-        };
+    getElements() {
+        return this.elements;
+    }
 
-        Scene.prototype.getElements = function() {
-            return this.elements;
-        };
-
-        Scene.prototype.clear = function() {
-            this.elements = [];
-        };
-
-        return Scene;
-    });
+    clear() {
+        this.elements = [];
+    }
+}
